@@ -11,6 +11,7 @@ pub struct Settings {
 
 #[derive(Debug, Clone, serde::Deserialize)]
 pub struct ApplicationSettings {
+    pub name: String,
     #[serde(deserialize_with = "deserialize_number_from_string")]
     pub port: u16,
     pub host: String,
@@ -46,9 +47,9 @@ impl DatabaseSettings {
     }
 }
 
-pub fn get_configuration() -> Result<Settings, config::ConfigError> {
+pub fn get_configuration(path: &str) -> Result<Settings, config::ConfigError> {
     let base_path = std::env::current_dir().expect("Failed to determine the current directory");
-    let configuration_directory = base_path.join("configuration");
+    let configuration_directory = base_path.join(path);
 
     let environment: Environment = std::env::var("APP_ENVIRONMENT")
         .unwrap_or_else(|_| "local".into())

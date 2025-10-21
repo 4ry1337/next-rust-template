@@ -6,4 +6,5 @@ export const pool = new Pool({
   database: process.env.POSTGRES_DB,
   port: Number(process.env.DB_PORT),
   host: process.env.DB_HOST,
+  ssl: Boolean(process.env.POSTGRES_TLS)
 });

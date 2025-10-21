@@ -1,5 +1,5 @@
 [package]
-name = "template"
+name = "backend"
 version = "0.1.0"
 edition = "2024"
 
@@ -8,12 +8,10 @@ path = "src/lib.rs"
 
 [[bin]]
 path = "src/main.rs"
-name = "template"
+name = "backend"
 
 [dependencies]
-# actix-web = { version = "4.9.0" }
-# actix-web-flash-messages = { version = "0.5", features = ["cookies"] }
-# actix-session = { version = "0.10.1", features = ["redis-session-rustls"] }
+actix-web = { version = "4.9.0" }
 tokio = { version = "1.47.1", features = ["macros", "rt-multi-thread"] }
 
 config = { version = "0.15.14" }
@@ -66,7 +64,6 @@ features = [
 version = "0.12.12"
 default-features = false
 features = ["json", "rustls-tls", "cookies"]
-
 
 [dev-dependencies]
 tokio = { version = "1.47.1", features = ["rt", "macros"] }
