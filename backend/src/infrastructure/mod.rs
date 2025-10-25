@@ -1,3 +1,4 @@
+pub mod applicaiton;
 pub mod configuration;
 pub mod databases;
 pub mod external;
