@@ -7,8 +7,7 @@ pub struct RedisClient(Client);
 impl RedisClient {
     /// Creates a new Redis client
     pub fn new(config: &RedisSettings) -> Result<Self, anyhow::Error> {
-        println!("{}", config.connection_string());
-        let client = Client::open(config.connection_string())?;
+        let client = Client::open(config.connection_string().as_str())?;
         Ok(Self(client))
     }
 
@@ -22,6 +21,7 @@ impl RedisClient {
         &self.0
     }
 
+    #[tracing::instrument(name = "Checking redis health", skip_all)]
     pub fn health_check(&self) -> Result<(), RedisError> {
         let mut conn = self.0.get_connection()?;
         redis::cmd("PING").query::<String>(&mut conn)?;

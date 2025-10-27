@@ -1,66 +1,46 @@
-use actix_web::{web, HttpResponse, Responder};
-use serde::Serialize;
+use actix_web::{http::StatusCode, web, HttpResponse, ResponseError};
+use anyhow::Context;
 
-use crate::infrastructure::applicaiton::ApplicationState;
+use crate::{infrastructure::applicaiton::ApplicationState, presentation::error::error_chain_fmt};
 
-#[derive(Serialize)]
-pub struct HealthResponse {
-    pub status:   String,
-    pub postgres: HealthStatus,
-    pub redis:    HealthStatus
+#[derive(thiserror::Error)]
+pub enum HealthcheckError {
+    #[error(transparent)]
+    UnexpectedError(#[from] anyhow::Error)
 }
 
-#[derive(Serialize)]
-pub struct HealthStatus {
-    pub status:  String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub message: Option<String>
+impl std::fmt::Debug for HealthcheckError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        error_chain_fmt(self, f)
+    }
+}
+
+impl ResponseError for HealthcheckError {
+    fn status_code(&self) -> StatusCode {
+        match self {
+            HealthcheckError::UnexpectedError(_) => StatusCode::INTERNAL_SERVER_ERROR
+        }
+    }
 }
 
 /// Basic health check endpoint
 /// GET /api/v1/health
-pub async fn health_check(app_state: web::Data<ApplicationState>) -> impl Responder {
+#[tracing::instrument(name = "Checking application health", skip_all)]
+pub async fn health_check(
+    app_state: web::Data<ApplicationState>
+) -> Result<HttpResponse, HealthcheckError> {
     // Check PostgreSQL
-    let postgres_status = match app_state.db_pool.health_check().await {
-        Ok(_) => HealthStatus {
-            status:  "healthy".to_string(),
-            message: None
-        },
-        Err(e) => HealthStatus {
-            status:  "unhealthy".to_string(),
-            message: Some(e.to_string())
-        }
-    };
+    app_state
+        .db_pool
+        .health_check()
+        .await
+        .context("Postgres is unavailable")?;
 
     // Check Redis
-    let redis_status = match app_state.redis_client.health_check() {
-        Ok(_) => HealthStatus {
-            status:  "healthy".to_string(),
-            message: None
-        },
-        Err(e) => HealthStatus {
-            status:  "unhealthy".to_string(),
-            message: Some(e.to_string())
-        }
-    };
+    app_state
+        .redis_client
+        .health_check()
+        .context("Redis is unavailable")?;
 
-    // Overall status
-    let overall_status = if postgres_status.status == "healthy" && redis_status.status == "healthy"
-    {
-        "healthy"
-    } else {
-        "degraded"
-    };
-
-    let response = HealthResponse {
-        status:   overall_status.to_string(),
-        postgres: postgres_status,
-        redis:    redis_status
-    };
-
-    if overall_status == "healthy" {
-        HttpResponse::Ok().json(response)
-    } else {
-        HttpResponse::ServiceUnavailable().json(response)
-    }
+    Ok(HttpResponse::Ok().finish())
 }

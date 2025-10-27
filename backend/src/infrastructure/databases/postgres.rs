@@ -13,6 +13,7 @@ impl PostgresPool {
 
     /// Health check - verifies database connection is working
     /// This executes a simple query to ensure the database is responsive
+    #[tracing::instrument(name = "Checking database health", skip_all)]
     pub async fn health_check(&self) -> Result<(), SqlxError> {
         sqlx::query("SELECT 1").execute(&self.0).await?;
         Ok(())
