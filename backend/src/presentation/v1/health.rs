@@ -1,7 +1,7 @@
 use actix_web::{http::StatusCode, web, HttpResponse, ResponseError};
 use anyhow::Context;
 
-use crate::{infrastructure::applicaiton::ApplicationState, presentation::error::error_chain_fmt};
+use crate::{infrastructure::application::ApplicationState, presentation::error::error_chain_fmt};
 
 #[derive(thiserror::Error)]
 pub enum HealthcheckError {

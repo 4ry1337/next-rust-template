@@ -2,12 +2,12 @@ import { auth } from '@/shared/lib/auth'
 import { headers } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
 
-const GO_API_URL = process.env.API_URL || 'http://localhost:8080'
+const API_URL = process.env.API_URL || 'http://localhost:8000'
 
 async function handler(request: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
   const path = await params.then(x => x.path.join('/'))
 
-  const url = new URL(`/api/${path}`, GO_API_URL)
+  const url = new URL(`/api/${path}`, API_URL)
   request.nextUrl.searchParams.forEach((value, key) => {
     url.searchParams.append(key, value)
   })

@@ -7,12 +7,12 @@ const ProtectedLayout = async ({
 }: Readonly<{
   children: React.ReactNode
 }>) => {
-  /* const session = await auth.api.getSession({
+  const session = await auth.api.getSession({
     headers: await headers()
   })
   if (!session) {
     return redirect('/signin', RedirectType.replace)
-  } */
+  }
   return (
     <>
       {children}

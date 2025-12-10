@@ -1,15 +1,15 @@
 use std::net::TcpListener;
 
-use actix_web::{dev::Server, middleware::Compress, web, App, HttpServer};
+use actix_web::{dev::Server, web, App, HttpServer};
 use sqlx::{postgres::PgPoolOptions, PgPool};
-use tracing_actix_web::TracingLogger;
 
 use crate::{
     infrastructure::{
         configuration::{DatabaseSettings, Settings},
-        databases::{postgres::PostgresPool, redis::RedisClient}
+        databases::{postgres::PostgresPool, redis::RedisClient},
+        middlewares::{compression, cors, tracing_logger}
     },
-    presentation::configure
+    presentation::routes::configure
 };
 
 pub struct Application {
@@ -73,8 +73,9 @@ pub fn run(
     let server = HttpServer::new(move || {
         App::new()
             .app_data(app_state.clone())
-            .wrap(TracingLogger::default())
-            .wrap(Compress::default())
+            .wrap(cors())
+            .wrap(tracing_logger())
+            .wrap(compression())
             .configure(configure)
     })
     .listen(listener)?
